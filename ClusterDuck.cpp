@@ -232,7 +232,6 @@ void ClusterDuck::runMamaDuck() {
   tymer.tick();
 
   if(receivedFlag) {  //If LoRa packet received
-    receivedFlag = false;
     int pSize = handlePacket();
     if(pSize > 0) {
       byte whoIsIt = transmission[0];
@@ -351,10 +350,11 @@ void ClusterDuck::couple(byte byteCode, String outgoing) {
   packetIndex++;
 
   for(int i=0; i < outgoingLen; i++) {  // add payload
-    transmission[i+2] = byteBuffer[i];
+    transmission[packetIndex] = byteBuffer[i];
+    packetIndex++;
   }
 
-  packetIndex = packetIndex + outgoingLen;
+  //packetIndex = packetIndex + outgoingLen;
 
 }
 
@@ -581,11 +581,23 @@ volatile bool ClusterDuck::getInterrupt() {
 
 //Setter
 void ClusterDuck::flipFlag() {
-  !receivedFlag;
+  if (receivedFlag == true) {
+    receivedFlag = false;
+  } else {
+    receivedFlag = true;
+  }
 }
 
 void ClusterDuck::flipInterrupt() {
-  !enableInterrupt;
+  if (enableInterrupt == true) {
+    enableInterrupt = false;
+  } else {
+    enableInterrupt = true;
+  }
+}
+
+void ClusterDuck::startReceive() {
+  lora.startReceive();
 }
 
 DNSServer ClusterDuck::dnsServer;

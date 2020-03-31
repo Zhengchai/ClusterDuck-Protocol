@@ -74,6 +74,7 @@ class ClusterDuck {
     volatile bool getInterrupt();
     void flipFlag();
     void flipInterrupt();
+    void startReceive();
 
   protected:
     static Packet _lastPacket;
