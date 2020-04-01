@@ -211,6 +211,8 @@ void ClusterDuck::setupMamaDuck() {
 }
 
 int ClusterDuck::handlePacket() {
+  memset(transmission, 0x00, pSize); //Reset transmission
+  packetIndex = 0;
   int pSize = lora.getPacketLength();
   int state = lora.readData(transmission, pSize);
 
@@ -356,7 +358,7 @@ void ClusterDuck::couple(byte byteCode, String outgoing) {
     transmission[packetIndex] = byteBuffer[i];
     packetIndex++;
   }
-  
+
 }
 
 bool ClusterDuck::idInPath(String path) {
@@ -444,6 +446,8 @@ String * ClusterDuck::getPacketData(int pSize) {
       packetIndex = 0;
       couple(iamhere_B, "1");
       int state = lora.transmit(transmission, packetIndex);
+      packetIndex = 0;
+      memset(transmission, 0x00, packetIndex);
       packetData[0] = "pong";
       return packetData;
 
