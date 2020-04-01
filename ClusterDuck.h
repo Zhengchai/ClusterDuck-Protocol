@@ -75,6 +75,8 @@ class ClusterDuck {
     void flipFlag();
     void flipInterrupt();
     void startReceive();
+    static int getRSSI();
+    static void ping();
 
   protected:
     static Packet _lastPacket;
