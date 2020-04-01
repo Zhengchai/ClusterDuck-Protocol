@@ -240,6 +240,7 @@ void ClusterDuck::runMamaDuck() {
     //   byte whoIsIt = transmission[0];
       //if(whoIsIt == senderId_B) {
         String * msg = getPacketData(pSize);
+        packetIndex = 0;
         if(msg[0] != "pong" && !idInPath(_lastPacket.path)) {
           sendPayloadStandard(_lastPacket.payload, _lastPacket.senderId, _lastPacket.messageId, _lastPacket.path);
           
@@ -253,7 +254,7 @@ void ClusterDuck::runMamaDuck() {
       // }
       
     // } else {
-      Serial.println("Byte code not recognized!"); 
+      // Serial.println("Byte code not recognized!"); 
       memset(transmission, 0x00, pSize); //Reset transmission
       packetIndex = 0;
 
@@ -355,9 +356,7 @@ void ClusterDuck::couple(byte byteCode, String outgoing) {
     transmission[packetIndex] = byteBuffer[i];
     packetIndex++;
   }
-
-  //packetIndex = packetIndex + outgoingLen;
-
+  
 }
 
 bool ClusterDuck::idInPath(String path) {
