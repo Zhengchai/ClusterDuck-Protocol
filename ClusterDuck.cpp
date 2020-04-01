@@ -217,6 +217,8 @@ int ClusterDuck::handlePacket() {
   if (state == ERR_NONE) {
     // packet was successfully received
     Serial.println("Packet Received!");
+    Serial.println("Packet Size: " + pSize);
+    Serial.println((char)transmission[1]);
 
     return pSize;
   } else {
@@ -232,16 +234,16 @@ void ClusterDuck::runMamaDuck() {
   tymer.tick();
 
   if(receivedFlag) {  //If LoRa packet received
+    receivedFlag = false;
+    enableInterrupt = false;
     int pSize = handlePacket();
     if(pSize > 0) {
       byte whoIsIt = transmission[0];
+      String * msg = getPacketData(pSize);
       if(whoIsIt == senderId_B) {
         String * msg = getPacketData(pSize);
         if(!idInPath(_lastPacket.path)) {
           sendPayloadStandard(_lastPacket.payload, _lastPacket.senderId, _lastPacket.messageId, _lastPacket.path);
-          
-          lora.startReceive();
-          enableInterrupt = true;
         }
         delete(msg);
       } else if(whoIsIt == ping_B) {
@@ -249,17 +251,16 @@ void ClusterDuck::runMamaDuck() {
         packetIndex = 0;
         couple(iamhere_B, "1");
         int state = lora.transmit(transmission, packetIndex);
-        
-        lora.startReceive();
-        enableInterrupt = true;
       }
       
     } else {
       Serial.println("Byte code not recognized!"); 
       memset(transmission, 0x00, pSize); //Reset transmission
+      packetIndex = 0;
 
     }
-    
+    enableInterrupt = true;
+    lora.startReceive();
   }
 
   processPortalRequest();
