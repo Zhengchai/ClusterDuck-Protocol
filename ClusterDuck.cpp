@@ -218,7 +218,6 @@ int ClusterDuck::handlePacket() {
     // packet was successfully received
     Serial.println("Packet Received!");
     Serial.println("Packet Size: " + pSize);
-    Serial.println((char)transmission[1]);
 
     return pSize;
   } else {
@@ -237,30 +236,31 @@ void ClusterDuck::runMamaDuck() {
     receivedFlag = false;
     enableInterrupt = false;
     int pSize = handlePacket();
-    if(pSize > 0) {
-      byte whoIsIt = transmission[0];
-      String * msg = getPacketData(pSize);
-      if(whoIsIt == senderId_B) {
+    // if(pSize > 0) {
+    //   byte whoIsIt = transmission[0];
+      //if(whoIsIt == senderId_B) {
         String * msg = getPacketData(pSize);
-        if(!idInPath(_lastPacket.path)) {
+        if(msg[0] != "pong" && !idInPath(_lastPacket.path)) {
           sendPayloadStandard(_lastPacket.payload, _lastPacket.senderId, _lastPacket.messageId, _lastPacket.path);
+          
         }
-        delete(msg);
-      } else if(whoIsIt == ping_B) {
-        memset(transmission, 0x00, packetIndex);
-        packetIndex = 0;
-        couple(iamhere_B, "1");
-        int state = lora.transmit(transmission, packetIndex);
-      }
+        //delete(msg);
+      //} else if(whoIsIt == ping_B) {
+      //   memset(transmission, 0x00, packetIndex);
+      //   packetIndex = 0;
+      //   couple(iamhere_B, "1");
+      //   int state = lora.transmit(transmission, packetIndex);
+      // }
       
-    } else {
+    // } else {
       Serial.println("Byte code not recognized!"); 
       memset(transmission, 0x00, pSize); //Reset transmission
       packetIndex = 0;
 
-    }
+    // }
     enableInterrupt = true;
     lora.startReceive();
+    Serial.println("Start receive");
   }
 
   processPortalRequest();
@@ -273,7 +273,8 @@ void ClusterDuck::sendPayloadMessage(String msg) {
   couple(payload_B, msg);
   couple(path_B, _deviceId);
 
-  int state = lora.transmit(transmission, packetIndex);
+  Serial.println(F("Packet index: " + packetIndex));
+  int state = lora.transmit(transmission, 250);
 
   memset(transmission, 0x00, packetIndex); //Reset transmission
   packetIndex = 0; //Reset packetIndex
@@ -388,7 +389,7 @@ String * ClusterDuck::getPacketData(int pSize) {
   packetIndex = 0;
   int len = 0;
   byte byteCode;
-  bool sId, mId, pLoad, pth;
+  bool sId, mId, pLoad, pth, ping;
   String msg = "";
   bool gotLen = false;
 
@@ -439,12 +440,21 @@ String * ClusterDuck::getPacketData(int pSize) {
       len = transmission[i+1];
       Serial.println("Len = " + String(len));
 
+    } else if(transmission[i] == ping_B) {
+      memset(transmission, 0x00, packetIndex);
+      packetIndex = 0;
+      couple(iamhere_B, "1");
+      int state = lora.transmit(transmission, packetIndex);
+      packetData[0] = "pong";
+      return packetData;
+
     } else if(len > 0 && gotLen) {
       msg = msg + String((char)transmission[i]);
       len--;
-    }
-    else {
+
+    } else {
       gotLen = true;
+
     }
     packetIndex++;
   }
