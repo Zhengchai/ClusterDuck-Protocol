@@ -63,7 +63,7 @@ void loop() {
       
     }
     duck.flipInterrupt();
-    lora.startReceive();
+    duck.startReceive();
   }
 
   
