@@ -38,15 +38,15 @@ void ClusterDuck::setupDisplay(String deviceType)  {
 
   u8x8.setCursor(0, 2);
   u8x8.print("  Project OWL  ");
-  
+
   u8x8.setCursor(0, 4);
   u8x8.print("Device: " + deviceType);
-  
+
   u8x8.setCursor(0, 5);
   u8x8.print("Status: Online");
 
   u8x8.setCursor(0, 6);
-  u8x8.print("ID:     " + _deviceId); 
+  u8x8.print("ID:     " + _deviceId);
 
   u8x8.setCursor(0, 7);
   u8x8.print(duckMac(false));
@@ -76,7 +76,7 @@ void ClusterDuck::setupLoRa(long BAND, int SS, int RST, int DI0, int DI1, int Tx
   lora.setDio0Action(setFlag);
 
   state = lora.startReceive();
-  
+
   if (state == ERR_NONE) {
     Serial.println("Listening for quacks");
   } else {
@@ -103,18 +103,8 @@ void ClusterDuck::setFlag(void) {
 
 //=========================================================
 
-//Setup Captive Portal
-void ClusterDuck::setupPortal(const char *AP) {
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(AP);
-  delay(200); // wait for 200ms for the access point to start before configuring
-
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-
-  Serial.println("Created Hotspot");
-
-  dnsServer.start(DNS_PORT, "*", apIP);
-
+//Setup WebServer
+void ClusterDuck::setupWebServer(bool createCaptivePortal = false) {
   Serial.println("Setting up Web Server");
 
   webServer.onNotFound([&](AsyncWebServerRequest *request) {
@@ -160,14 +150,70 @@ void ClusterDuck::setupPortal(const char *AP) {
     request->send(200, "text/html", mac);
   });
 
-  // for captive portal
-  webServer.addHandler(new CaptiveRequestHandler(MAIN_page)).setFilter(ON_AP_FILTER);
+	webServer.on("/wifi", HTTP_GET, [&](AsyncWebServerRequest *request) {
 
-  // Test 👍👌😅
+		AsyncResponseStream *response = request->beginResponseStream("text/html");
+    response->print("<!DOCTYPE html><html><head><title>Update Wifi Credentials</title></head><body>");
+    response->print("<p>Use this page to update your Wifi credentials</p>");
+
+
+		response->print("<form action='/changeSSID' method='post'>");
+
+		response->print("<label for='ssid'>SSID:</label><br>");
+		response->print("<input name='ssid' type='text' placeholder='SSID' /><br><br>");
+
+		esponse->print("<label for='pass'>Password:</label><br>");
+		response->print("<input name='pass' type='text' placeholder='Password' /><br><br>");
+
+		response->print("</form>");
+
+    response->print("</body></html>");
+    request->send(response);
+	});
+
+	webServer.on("/changeSSID", HTTP_POST, [&](AsyncWebServerRequest *request) {
+		int paramsNumber = request->params();
+    String val = "";
+		String SSID = "";
+		String PASSWORD = "";
+
+    for (int i = 0; i < paramsNumber; i++) {
+      AsyncWebParameter *p = request->getParam(i);
+
+			if (p->name().c_str() == "ssid") {
+				SSID =p->value().c_str();
+			} else if (p->name().c_str() == "pass") {
+				PASSWORD = p_.value().c_str();
+			}
+    }
+
+		if (SSID != "" && PASSWORD != "") {
+			setupInternet(SSID, PASSWORD);
+		}
+	});
+
+  // for captive portal
+	if (createCaptivePortal == true) {
+		webServer.addHandler(new CaptiveRequestHandler(MAIN_page)).setFilter(ON_AP_FILTER);
+	}
 
   webServer.begin();
+}
 
-  if (!MDNS.begin(DNS))
+void ClusterDuck::setupWifiAp(const char *AP = " 🆘 DUCK EMERGENCY PORTAL") {
+	WiFi.mode(WIFI_AP);
+  WiFi.softAP(AP);
+  delay(200); // wait for 200ms for the access point to start before configuring
+
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+
+  Serial.println("Created Wifi Access Point");
+}
+
+void ClusterDuck::setupDns() {
+	dnsServer.start(DNS_PORT, "*", apIP);
+
+	if (!MDNS.begin(DNS))
   {
     Serial.println("Error setting up MDNS responder!");
   }
@@ -178,11 +224,34 @@ void ClusterDuck::setupPortal(const char *AP) {
   }
 }
 
+void ClusterDuck::setupInternet(String SSID, String PASSWORD)
+{
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.print(SSID);
+
+  // Connect to Access Point
+  WiFi.begin(SSID, PASSWORD);
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    timer.tick(); //Advance timer to reboot after awhile
+    //delay(500);
+    Serial.print(".");
+  }
+
+  // Connected to Access Point
+  Serial.println("");
+  Serial.println("DUCK CONNECTED TO INTERNET");
+}
+
 //Setup premade DuckLink with default settings
 void ClusterDuck::setupDuckLink() {
   setupDisplay("Duck");
   setupLoRa();
-  setupPortal();
+	setupWifiAp();
+	setupDns();
+  setupWebServer(true);
 
   Serial.println("Duck Online");
 }
@@ -196,7 +265,9 @@ void ClusterDuck::runDuckLink() {
 void ClusterDuck::setupDetect() {
   setupDisplay("Detector");
   setupLoRa();
-  setupPortal();
+  setupWifiAp();
+	setupDns();
+  setupWebServer(false);
 
   Serial.println("Detector Online");
 }
@@ -214,7 +285,7 @@ int ClusterDuck::runDetect() {
           val = lora.getRSSI();
         }
       }
-    }  
+    }
     enableInterrupt = true;
     startReceive();
     Serial.println("Start receive");
@@ -230,8 +301,10 @@ void ClusterDuck::processPortalRequest() {
 
 void ClusterDuck::setupMamaDuck() {
   setupDisplay("Mama");
-  setupPortal();
   setupLoRa();
+	setupWifiAp();
+	setupDns();
+  setupWebServer(true);
 
   Serial.println("MamaDuck Online");
 
@@ -278,7 +351,7 @@ void ClusterDuck::runMamaDuck() {
           sendPayloadStandard(_lastPacket.payload, _lastPacket.senderId, _lastPacket.messageId, _lastPacket.path);
           memset(transmission, 0x00, pSize); //Reset transmission
           packetIndex = 0;
-          
+
         }
         //delete(msg);
       //} else if(whoIsIt == ping_B) {
@@ -287,9 +360,9 @@ void ClusterDuck::runMamaDuck() {
       //   couple(iamhere_B, "1");
       //   int state = lora.transmit(transmission, packetIndex);
       // }
-      
+
     } else {
-      // Serial.println("Byte code not recognized!"); 
+      // Serial.println("Byte code not recognized!");
       memset(transmission, 0x00, pSize); //Reset transmission
       packetIndex = 0;
 
@@ -332,7 +405,7 @@ void ClusterDuck::sendPayloadStandard(String msg, String senderId, String messag
   // if(packetIndex < 1) {
   //   packetIndex = total.length();
   // }
-  
+
   couple(senderId_B, senderId);
   couple(messageId_B, messageId);
   couple(payload_B, msg);
@@ -501,7 +574,7 @@ String * ClusterDuck::getPacketData(int pSize) {
       msg = "";
     }
   }
-  
+
   return packetData;
 }
 
@@ -556,7 +629,7 @@ String ClusterDuck::duckMac(boolean format)
       if(i % 2 == 0 && i != 0){
         formattedMac += ":";
         formattedMac += unformattedMac[i];
-      } 
+      }
       else {
         formattedMac += unformattedMac[i];
       }
@@ -633,9 +706,9 @@ void ClusterDuck::flipInterrupt() {
 
 void ClusterDuck::startReceive() {
   int state = lora.startReceive();
-  
+
   if (state == ERR_NONE) {
-    
+
   } else {
     Serial.print("failed, code ");
     Serial.println(state);

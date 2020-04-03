@@ -37,8 +37,11 @@ void setup() {
   duck.setupLoRa();
   duck.setupDisplay("Papa");
 
-  setupWiFi();
-  
+  duck.setupWifiAp();
+	duck.setupDns();
+
+	duck.setupInternet(SSID, PASSWORD);
+
   Serial.println("PAPA Online");
 }
 
@@ -49,7 +52,7 @@ void loop() {
     Serial.print("WiFi disconnected, reconnecting to local network: ");
     Serial.print(SSID);
     setupWiFi();
-
+		setupDns();
   }
   setupMQTT();
 
@@ -60,36 +63,17 @@ void loop() {
     if(pSize > 3) {
       String * msg = duck.getPacketData(pSize);
       quackJson();
-      
+
     }
     duck.flipInterrupt();
     duck.startReceive();
   }
 
-  
+
   timer.tick();
 }
 
-void setupWiFi()
-{
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.print(SSID);
 
-  // Connect to Access Poink
-  WiFi.begin(SSID, PASSWORD);
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    timer.tick(); //Advance timer to reboot after awhile
-    //delay(500);
-    Serial.print(".");
-  }
-
-  // Connected to Access Point
-  Serial.println("");
-  Serial.println("WiFi connected - PAPA ONLINE");
-}
 
 void setupMQTT()
 {
@@ -121,11 +105,11 @@ void quackJson() {
   serializeJson(doc, jsonstat);
 
   if (client.publish(topic, jsonstat.c_str())) {
-    
+
     serializeJsonPretty(doc, Serial);
      Serial.println("");
     Serial.println("Publish ok");
-   
+
   }
   else {
     Serial.println("Publish failed");
