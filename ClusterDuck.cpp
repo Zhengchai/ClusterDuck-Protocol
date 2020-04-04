@@ -230,8 +230,11 @@ void ClusterDuck::setupInternet(String SSID, String PASSWORD)
   Serial.print("Connecting to ");
   Serial.print(SSID);
 
-  char * ssid = new char[SSID.length()];
-  char * pass = new char[PASSWORD.length()];
+  char * ssid = new char[SSID.length()-1];
+  char * pass = new char[PASSWORD.length()-1];
+
+  SSID.toCharArray(ssid, SSID.length()-1);
+  PASSWORD.toCharArray(pass, PASSWORD.length()-1);
 
   // Connect to Access Point
   WiFi.begin(ssid, pass);

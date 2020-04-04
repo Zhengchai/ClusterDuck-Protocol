@@ -51,8 +51,8 @@ void loop() {
   {
     Serial.print("WiFi disconnected, reconnecting to local network: ");
     Serial.print(SSID);
-    setupWiFi();
-		setupDns();
+    duck.setupInternet(SSID, PASSWORD);
+		duck.setupDns();
   }
   setupMQTT();
 
