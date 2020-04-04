@@ -104,7 +104,7 @@ void ClusterDuck::setFlag(void) {
 //=========================================================
 
 //Setup WebServer
-void ClusterDuck::setupWebServer(bool createCaptivePortal = false) {
+void ClusterDuck::setupWebServer(bool createCaptivePortal) {
   Serial.println("Setting up Web Server");
 
   webServer.onNotFound([&](AsyncWebServerRequest *request) {
@@ -162,7 +162,7 @@ void ClusterDuck::setupWebServer(bool createCaptivePortal = false) {
 		response->print("<label for='ssid'>SSID:</label><br>");
 		response->print("<input name='ssid' type='text' placeholder='SSID' /><br><br>");
 
-		esponse->print("<label for='pass'>Password:</label><br>");
+		response->print("<label for='pass'>Password:</label><br>");
 		response->print("<input name='pass' type='text' placeholder='Password' /><br><br>");
 
 		response->print("</form>");
@@ -183,7 +183,7 @@ void ClusterDuck::setupWebServer(bool createCaptivePortal = false) {
 			if (p->name().c_str() == "ssid") {
 				SSID =p->value().c_str();
 			} else if (p->name().c_str() == "pass") {
-				PASSWORD = p_.value().c_str();
+				PASSWORD = p->value().c_str();
 			}
     }
 
@@ -200,7 +200,7 @@ void ClusterDuck::setupWebServer(bool createCaptivePortal = false) {
   webServer.begin();
 }
 
-void ClusterDuck::setupWifiAp(const char *AP = " 🆘 DUCK EMERGENCY PORTAL") {
+void ClusterDuck::setupWifiAp(const char *AP) {
 	WiFi.mode(WIFI_AP);
   WiFi.softAP(AP);
   delay(200); // wait for 200ms for the access point to start before configuring
@@ -231,11 +231,11 @@ void ClusterDuck::setupInternet(String SSID, String PASSWORD)
   Serial.print(SSID);
 
   // Connect to Access Point
-  WiFi.begin(SSID, PASSWORD);
+  //WiFi.begin(SSID, PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED)
   {
-    timer.tick(); //Advance timer to reboot after awhile
+    tymer.tick(); //Advance timer to reboot after awhile
     //delay(500);
     Serial.print(".");
   }

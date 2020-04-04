@@ -9,6 +9,8 @@
 
 #include <RadioLib.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <WiFiMulti.h>
 #include <U8x8lib.h>
 
 #include <DNSServer.h>
