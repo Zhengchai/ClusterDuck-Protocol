@@ -10,7 +10,6 @@
 #include <RadioLib.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <WiFiMulti.h>
 #include <U8x8lib.h>
 
 #include <DNSServer.h>
@@ -41,7 +40,7 @@ class ClusterDuck {
     static void setupWebServer(bool createCaptivePortal = false);
 		static void setupWifiAp(const char *AP = " 🆘 DUCK EMERGENCY PORTAL");
 		static void setupDns();
-		static void setupInternet(String SSID, String PASSWORD);
+		static void setupInternet(const String SSID, const String PASSWORD);
     static bool runCaptivePortal();
 
     static void setupDuckLink();
