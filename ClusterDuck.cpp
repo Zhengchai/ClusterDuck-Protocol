@@ -174,8 +174,8 @@ void ClusterDuck::setupWebServer(bool createCaptivePortal) {
 	webServer.on("/changeSSID", HTTP_POST, [&](AsyncWebServerRequest *request) {
 		int paramsNumber = request->params();
     String val = "";
-		String SSID = "";
-		String PASSWORD = "";
+		const char* SSID = "";
+		const char* PASSWORD = "";
 
     for (int i = 0; i < paramsNumber; i++) {
       AsyncWebParameter *p = request->getParam(i);
@@ -224,20 +224,20 @@ void ClusterDuck::setupDns() {
   }
 }
 
-void ClusterDuck::setupInternet(String SSID, String PASSWORD)
+void ClusterDuck::setupInternet(const char* SSID, const char* PASSWORD)
 {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.print(SSID);
 
-  char * ssid = new char[SSID.length()-1];
-  char * pass = new char[PASSWORD.length()-1];
+  //char * ssid = new char[SSID.length()-1];
+  //char * pass = new char[PASSWORD.length()-1];
 
-  SSID.toCharArray(ssid, SSID.length()-1);
-  PASSWORD.toCharArray(pass, PASSWORD.length()-1);
+  //SSID.toCharArray(ssid, SSID.length()-1);
+  //PASSWORD.toCharArray(pass, PASSWORD.length()-1);
 
   // Connect to Access Point
-  WiFi.begin(ssid, pass);
+  WiFi.begin(SSID, PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED)
   {
