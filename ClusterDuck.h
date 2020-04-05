@@ -40,7 +40,7 @@ class ClusterDuck {
     static void setupWebServer(bool createCaptivePortal = false);
 		static void setupWifiAp(const char *AP = " 🆘 DUCK EMERGENCY PORTAL");
 		static void setupDns();
-		static void setupInternet(const char* SSID, const char* PASSWORD);
+		static void setupInternet(String SSID, String PASSWORD);
     static bool runCaptivePortal();
 
     static void setupDuckLink();

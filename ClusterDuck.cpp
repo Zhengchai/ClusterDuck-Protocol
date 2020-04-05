@@ -165,6 +165,8 @@ void ClusterDuck::setupWebServer(bool createCaptivePortal) {
 		response->print("<label for='pass'>Password:</label><br>");
 		response->print("<input name='pass' type='text' placeholder='Password' /><br><br>");
 
+    response->print("<input type='submit' value='Submit' />");
+
 		response->print("</form>");
 
     response->print("</body></html>");
@@ -174,22 +176,28 @@ void ClusterDuck::setupWebServer(bool createCaptivePortal) {
 	webServer.on("/changeSSID", HTTP_POST, [&](AsyncWebServerRequest *request) {
 		int paramsNumber = request->params();
     String val = "";
-		const char* SSID = "";
-		const char* PASSWORD = "";
+		String SSID = "";
+		String PASSWORD = "";
 
     for (int i = 0; i < paramsNumber; i++) {
       AsyncWebParameter *p = request->getParam(i);
 
-			if (p->name().c_str() == "ssid") {
-				SSID =p->value().c_str();
-			} else if (p->name().c_str() == "pass") {
-				PASSWORD = p->value().c_str();
+      String name = String(p->name());
+      String value = String(p->value());
+
+			if (name == "ssid") {
+        SSID = String(p->value());
+			} else if (name == "pass") {
+				PASSWORD = String(p->value());
 			}
     }
 
 		if (SSID != "" && PASSWORD != "") {
 			setupInternet(SSID, PASSWORD);
-		}
+      request->send(200, "text/plain", "Success");
+		} else {
+      request->send(500, "text/plain", "There was an error");
+    }
 	});
 
   // for captive portal
@@ -224,26 +232,26 @@ void ClusterDuck::setupDns() {
   }
 }
 
-void ClusterDuck::setupInternet(const char* SSID, const char* PASSWORD)
+void ClusterDuck::setupInternet(String SSID, String PASSWORD)
 {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.print(SSID);
 
-  //char * ssid = new char[SSID.length()-1];
-  //char * pass = new char[PASSWORD.length()-1];
+  // const char * ssid = new char[SSID.length()-1];
+  // const char * pass = new char[PASSWORD.length()-1];
 
-  //SSID.toCharArray(ssid, SSID.length()-1);
-  //PASSWORD.toCharArray(pass, PASSWORD.length()-1);
+  // SSID.toCharArray(ssid, SSID.length()-1);
+  // PASSWORD.toCharArray(pass, PASSWORD.length()-1);
 
   // Connect to Access Point
-  WiFi.begin(SSID, PASSWORD);
+  WiFi.begin(SSID.c_str(), PASSWORD.c_str());
 
   while (WiFi.status() != WL_CONNECTED)
   {
     tymer.tick(); //Advance timer to reboot after awhile
     //delay(500);
-    Serial.print(".");
+    //Serial.print(".");
   }
 
   // Connected to Access Point

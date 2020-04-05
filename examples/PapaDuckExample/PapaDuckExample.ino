@@ -19,8 +19,8 @@ char authMethod[]       = "use-token-auth";
 char token[]            = TOKEN;
 char clientId[]         = "d:" ORG ":" DEVICE_TYPE ":" DEVICE_ID;
 
-const char* ssid = "Evans_Guest";
-const char* password = "ThisIsMyGuestNetwork!";
+String ssid = "";
+String password = "";
 
 ClusterDuck duck;
 
@@ -44,6 +44,7 @@ void setup() {
 	duck.setupDns();
 
 	duck.setupInternet(ssid, password);
+  duck.setupWebServer();
 
   Serial.println("PAPA Online");
 }
