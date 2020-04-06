@@ -85,6 +85,9 @@ class ClusterDuck {
     static void setupDetect();
     static int runDetect();
 
+    static void setColor(int ledR = 25,int ledG = 4,int ledB = 2);
+    static void setupLED();
+
   protected:
     static Packet _lastPacket;
     static String _deviceId;
@@ -113,6 +116,10 @@ class ClusterDuck {
     static byte payload_B;
     static byte iamhere_B;
     static byte path_B;
+
+    static int ledR;
+    static int ledG;
+    static int ledB;
 
 
 };
