@@ -245,18 +245,21 @@ void ClusterDuck::setupInternet(String SSID, String PASSWORD)
   // PASSWORD.toCharArray(pass, PASSWORD.length()-1);
 
   // Connect to Access Point
-  WiFi.begin(SSID.c_str(), PASSWORD.c_str());
-
-  while (WiFi.status() != WL_CONNECTED)
+  if (SSID != "" && PASSWORD != "")
   {
-    tymer.tick(); //Advance timer to reboot after awhile
-    //delay(500);
-    //Serial.print(".");
-  }
+    WiFi.begin(SSID.c_str(), PASSWORD.c_str());
 
-  // Connected to Access Point
-  Serial.println("");
-  Serial.println("DUCK CONNECTED TO INTERNET");
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      tymer.tick(); //Advance timer to reboot after awhile
+      //delay(500);
+      //Serial.print(".");
+    }
+
+    // Connected to Access Point
+    Serial.println("");
+    Serial.println("DUCK CONNECTED TO INTERNET");
+  }
 }
 
 //Setup premade DuckLink with default settings
